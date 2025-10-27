@@ -66,10 +66,9 @@ func NewStoreWithDialector(dialector gorm.Dialector) (*Store, error) {
 
 	store := &Store{db: db}
 
-	// 自动迁移数据库表
-	if err := store.migrate(); err != nil {
-		return nil, fmt.Errorf("failed to migrate database: %w", err)
-	}
+	// 注意：数据库迁移使用 SQL 脚本手动管理（migrations/postgres/*.sql）
+	// GORM AutoMigrate 已禁用，避免与手动迁移冲突
+	// 如需迁移，请使用 docker-compose 启动时自动执行或手动运行 SQL 脚本
 
 	return store, nil
 }
