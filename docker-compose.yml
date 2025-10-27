@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: tempmail-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tempmail}
+      POSTGRES_USER: ${POSTGRES_USER:-tempmail}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/postgres:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tempmail} -d ${POSTGRES_DB:-tempmail}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tempmail-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: tempmail-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tempmail-network
+
+  # Go 应用服务
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tempmail-app
+    restart: unless-stopped
+    environment:
+      # JWT 配置
+      TEMPMAIL_JWT_SECRET: ${JWT_SECRET}
+      TEMPMAIL_JWT_ISSUER: ${JWT_ISSUER:-tempmail}
+      TEMPMAIL_JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-24h}
+      TEMPMAIL_JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-168h}
+      
+      # PostgreSQL 配置
+      TEMPMAIL_DATABASE_TYPE: postgres
+      TEMPMAIL_DATABASE_DSN: postgresql://${POSTGRES_USER:-tempmail}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tempmail}?sslmode=disable
+      TEMPMAIL_DATABASE_MAX_OPEN_CONNS: ${DB_MAX_OPEN_CONNS:-25}
+      TEMPMAIL_DATABASE_MAX_IDLE_CONNS: ${DB_MAX_IDLE_CONNS:-5}
+      TEMPMAIL_DATABASE_CONN_MAX_LIFETIME: ${DB_CONN_MAX_LIFETIME:-5m}
+      
+      # Redis 配置
+      TEMPMAIL_REDIS_ADDRESS: redis:6379
+      TEMPMAIL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      TEMPMAIL_REDIS_DB: ${REDIS_DB:-0}
+      
+      # HTTP 服务器配置
+      TEMPMAIL_SERVER_HOST: 0.0.0.0
+      TEMPMAIL_SERVER_PORT: 8080
+      
+      # SMTP 服务器配置
+      TEMPMAIL_SMTP_BIND_ADDR: :25
+      TEMPMAIL_SMTP_DOMAIN: ${SMTP_DOMAIN:-temp.mail}
+      
+      # 邮箱配置
+      TEMPMAIL_MAILBOX_ALLOWED_DOMAINS: ${ALLOWED_DOMAINS:-temp.mail,tempmail.dev}
+      TEMPMAIL_MAILBOX_DEFAULT_TTL: ${MAILBOX_DEFAULT_TTL:-24h}
+      TEMPMAIL_MAILBOX_MAX_PER_IP: ${MAILBOX_MAX_PER_IP:-10}
+      
+      # CORS 配置
+      TEMPMAIL_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+      
+      # 日志配置
+      TEMPMAIL_LOG_LEVEL: ${LOG_LEVEL:-info}
+      TEMPMAIL_LOG_DEVELOPMENT: ${LOG_DEVELOPMENT:-false}
+      
+      # 文件存储路径
+      TEMPMAIL_STORAGE_PATH: /app/data/mail-storage
+    volumes:
+      - mail_storage:/app/data/mail-storage
+    ports:
+      - "${HTTP_PORT:-8080}:8080"
+      - "${SMTP_PORT:-25}:25"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - tempmail-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  mail_storage:
+    driver: local
+
+networks:
+  tempmail-network:
+    driver: bridge
