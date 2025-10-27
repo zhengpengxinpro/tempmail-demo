@@ -67,6 +67,11 @@ type JWTConfig struct {
 	RefreshExpiry time.Duration // 刷新令牌有效期，默认 7 天
 }
 
+// StorageConfig 定义文件存储配置
+type StorageConfig struct {
+	Path string // 文件存储路径，默认 "./data/mail-storage"
+}
+
 // Config 是系统核心配置的根结构体，包含所有子系统的配置
 type Config struct {
 	Server   ServerConfig   // HTTP 服务器配置
@@ -77,6 +82,7 @@ type Config struct {
 	Database DatabaseConfig // 数据库配置
 	Redis    RedisConfig    // Redis 配置
 	JWT      JWTConfig      // JWT 认证配置
+	Storage  StorageConfig  // 文件存储配置
 }
 
 // Load 从环境变量和 .env 文件加载系统配置
@@ -126,6 +132,7 @@ func Load() (*Config, error) {
 	viper.SetDefault("jwt.issuer", "tempmail")
 	viper.SetDefault("jwt.access_expiry", "15m")
 	viper.SetDefault("jwt.refresh_expiry", "7d")
+	viper.SetDefault("storage.path", "./data/mail-storage")
 
 	serverHost := viper.GetString("server.host")
 	serverPort := viper.GetInt("server.port")
@@ -216,6 +223,9 @@ func Load() (*Config, error) {
 			Issuer:        viper.GetString("jwt.issuer"),
 			AccessExpiry:  accessExpiry,
 			RefreshExpiry: refreshExpiry,
+		},
+		Storage: StorageConfig{
+			Path: viper.GetString("storage.path"),
 		},
 	}
 
