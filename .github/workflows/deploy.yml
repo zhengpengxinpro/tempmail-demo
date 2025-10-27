@@ -1,0 +1,123 @@
+name: Deploy Backend to Server
+
+# 触发条件：推送到 main/master 分支时自动部署
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # 2. 设置 SSH 密钥
+      - name: Setup SSH Key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+      
+      # 3. 部署到服务器
+      - name: Deploy to server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT || 22 }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/opt/tempmail' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p $SERVER_PORT $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+            set -e
+            
+            echo "========================================="
+            echo "🚀 开始部署后端服务..."
+            echo "========================================="
+            
+            # 进入部署目录
+            cd ${{ secrets.DEPLOY_PATH || '/opt/tempmail' }}
+            
+            # 拉取最新代码
+            echo "📦 拉取最新代码..."
+            git pull origin main || git pull origin master
+            
+            # 检查环境变量文件
+            if [ ! -f .env.production ]; then
+              echo "❌ 错误：.env.production 文件不存在！"
+              echo "请先创建并配置 .env.production 文件"
+              exit 1
+            fi
+            
+            # 停止旧服务
+            echo "🛑 停止旧服务..."
+            docker-compose down || true
+            
+            # 构建新镜像
+            echo "🔨 构建新镜像..."
+            docker-compose build --no-cache
+            
+            # 启动服务
+            echo "🚀 启动服务..."
+            docker-compose --env-file .env.production up -d
+            
+            # 等待服务启动
+            echo "⏳ 等待服务启动..."
+            sleep 15
+            
+            # 健康检查
+            echo "🏥 执行健康检查..."
+            for i in {1..30}; do
+              if curl -f http://localhost:8080/health > /dev/null 2>&1; then
+                echo "✅ 应用健康检查通过！"
+                break
+              fi
+              if [ $i -eq 30 ]; then
+                echo "❌ 应用健康检查失败！"
+                docker-compose logs --tail=50 app
+                exit 1
+              fi
+              echo "等待中... ($i/30)"
+              sleep 2
+            done
+            
+            # 清理旧镜像
+            echo "🧹 清理旧镜像..."
+            docker image prune -f
+            
+            # 显示服务状态
+            echo "========================================="
+            echo "📊 服务状态："
+            docker-compose ps
+            echo "========================================="
+            echo "✅ 部署完成！"
+            echo "🌐 HTTP API: http://${{ secrets.SERVER_HOST }}:8080"
+            echo "📧 SMTP: ${{ secrets.SERVER_HOST }}:25"
+            echo "========================================="
+          ENDSSH
+      
+      # 4. 部署结果通知
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ $? -eq 0 ]; then
+            echo "✅ 部署成功！"
+            echo "服务地址: http://${{ secrets.SERVER_HOST }}:8080"
+          else
+            echo "❌ 部署失败！请检查日志"
+            exit 1
+          fi
+      
+      # 5. 清理 SSH 密钥
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key
