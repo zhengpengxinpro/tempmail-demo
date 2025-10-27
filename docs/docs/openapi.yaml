@@ -1,0 +1,1157 @@
+openapi: 3.0.3
+info:
+  title: TempMail API
+  description: |
+    TempMail 临时邮箱系统 API v0.8.2-beta
+    
+    完整的临时邮箱服务后端API，支持用户注册、邮箱创建、邮件接收、别名管理等功能。
+    
+    ## 📋 快速开始
+    - **基础URL**: `https://api.tempmail.example.com` (生产环境) 或 `http://localhost:8080` (开发环境)
+    - **认证方式**: JWT Bearer Token 或 API Key
+    - **响应格式**: JSON（统一响应格式）
+    
+    ## 🎯 主要功能
+    - 🔐 用户认证系统（注册/登录/JWT）
+    - 📧 临时邮箱创建和管理
+    - 📨 邮件接收和查看
+    - 🔄 邮箱别名管理
+    - 🏷️ 邮件标签分类
+    - 👑 管理员功能
+    - 🔌 WebSocket 实时通知
+    - 🔑 API Key 管理
+    
+    ## 💡 重要说明
+    - 本系统仅用于接收邮件，**严禁对外发送邮件**
+    - 所有API响应使用统一格式 `{code, msg, data}`
+    - 支持兼容API（mail.ry.edu.kg 格式）
+  
+  version: 0.8.2-beta
+  contact:
+    name: TempMail Team
+    url: https://github.com/tempmail
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080
+    description: 开发环境
+  - url: https://api.tempmail.example.com
+    description: 生产环境
+
+paths:
+  # 公开API（无需认证）
+  /health:
+    get:
+      summary: 健康检查
+      description: 检查API服务状态
+      tags:
+        - Health
+      responses:
+        '200':
+          description: 服务正常
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                  type: string
+                  example: ok
+
+  /v1/public/domains:
+    get:
+      summary: 获取可用域名
+      description: 获取系统支持的所有域名列表
+      tags:
+        - Public
+      responses:
+        '200':
+          description: 域名列表获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                msg: 获取成功
+                data:
+                  domains:
+                    - temp.mail
+                    - tempmail.dev
+
+  # 认证API
+  /v1/auth/register:
+    post:
+      summary: 用户注册
+      description: 创建新的用户账号
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /v1/auth/login:
+    post:
+      summary: 用户登录
+      description: 用户登录获取访问令牌
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/auth/refresh:
+    post:
+      summary: 刷新令牌
+      description: 使用刷新令牌获取新的访问令牌
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/auth/me:
+    get:
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
+      tags:
+        - Authentication
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 用户信息获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+
+  # 邮箱管理API
+  /v1/mailboxes:
+    post:
+      summary: 创建临时邮箱
+      description: 创建一个新的临时邮箱地址
+      tags:
+        - Mailbox
+      parameters:
+        - name: optional_auth
+          in: header
+          description: 可选的JWT认证令牌
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMailboxRequest'
+      responses:
+        '200':
+          description: 邮箱创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailboxResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    get:
+      summary: 获取邮箱列表
+      description: 获取当前用户的所有邮箱列表
+      tags:
+        - Mailbox
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 邮箱列表获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 获取成功
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Mailbox'
+                      count:
+                        type: integer
+                        example: 5
+
+  /v1/mailboxes/{id}:
+    get:
+      summary: 获取邮箱详情
+      description: 获取指定邮箱的详细信息
+      tags:
+        - Mailbox
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 邮箱ID
+          schema:
+            type: string
+        - name: X-Mailbox-Token
+          in: header
+          required: true
+          description: 邮箱访问令牌
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 邮箱信息获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mailbox'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: 删除邮箱
+      description: 删除指定邮箱及其所有邮件
+      tags:
+        - Mailbox
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 邮箱ID
+          schema:
+            type: string
+        - name: X-Mailbox-Token
+          in: header
+          required: true
+          description: 邮箱访问令牌
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 邮箱删除成功
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 邮件管理API
+  /v1/mailboxes/{id}/messages:
+    get:
+      summary: 获取邮件列表
+      description: 获取指定邮箱的所有邮件
+      tags:
+        - Messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 邮箱ID
+          schema:
+            type: string
+        - name: X-Mailbox-Token
+          in: header
+          required: true
+          description: 邮箱访问令牌
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: 限制返回数量
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          description: 偏移量
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 邮件列表获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 获取成功
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Message'
+                      count:
+                        type: integer
+                        example: 10
+
+  /v1/mailboxes/{id}/messages/{messageId}:
+    get:
+      summary: 获取邮件详情
+      description: 获取指定邮件的完整内容
+      tags:
+        - Messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 邮箱ID
+          schema:
+            type: string
+        - name: messageId
+          in: path
+          required: true
+          description: 邮件ID
+          schema:
+            type: string
+        - name: X-Mailbox-Token
+          in: header
+          required: true
+          description: 邮箱访问令牌
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 邮件详情获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/mailboxes/{id}/messages/{messageId}/read:
+    post:
+      summary: 标记邮件为已读
+      description: 将指定邮件标记为已读状态
+      tags:
+        - Messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 邮箱ID
+          schema:
+            type: string
+        - name: messageId
+          in: path
+          required: true
+          description: 邮件ID
+          schema:
+            type: string
+        - name: X-Mailbox-Token
+          in: header
+          required: true
+          description: 邮箱访问令牌
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 邮件标记成功
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # 别名管理API
+  /v1/mailboxes/{id}/aliases:
+    post:
+      summary: 创建邮箱别名
+      description: 为邮箱创建新的别名地址
+      tags:
+        - Aliases
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 邮箱ID
+          schema:
+            type: string
+        - name: X-Mailbox-Token
+          in: header
+          required: true
+          description: 邮箱访问令牌
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAliasRequest'
+      responses:
+        '200':
+          description: 别名创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alias'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    get:
+      summary: 获取别名列表
+      description: 获取邮箱的所有别名
+      tags:
+        - Aliases
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 邮箱ID
+          schema:
+            type: string
+        - name: X-Mailbox-Token
+          in: header
+          required: true
+          description: 邮箱访问令牌
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 别名列表获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 获取成功
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Alias'
+                      count:
+                        type: integer
+                        example: 2
+
+  # 管理员API
+  /v1/admin/statistics:
+    get:
+      summary: 获取系统统计
+      description: 获取系统整体统计信息
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 统计信息获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatistics'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /v1/admin/users:
+    get:
+      summary: 获取用户列表
+      description: 获取系统中的所有用户列表
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 用户列表获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 获取成功
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AdminUser'
+                      count:
+                        type: integer
+                        example: 100
+
+  # WebSocket
+  /v1/ws:
+    get:
+      summary: WebSocket连接
+      description: 建立WebSocket连接接收实时邮件通知
+      tags:
+        - WebSocket
+      responses:
+        '101':
+          description: WebSocket连接建立成功
+
+  # 兼容性API
+  /api/emails/generate:
+    post:
+      summary: 生成临时邮箱（兼容API）
+      description: 生成新的临时邮箱（兼容mail.ry.edu.kg格式）
+      tags:
+        - Compatibility
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: 邮箱生成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emailId:
+                    type: string
+                    example: "uuid-1234"
+                  email:
+                    type: string
+                    example: "test@temp.mail"
+                  token:
+                    type: string
+                    example: "AbCdEf123456"
+
+  /api/emails:
+    get:
+      summary: 获取邮箱列表（兼容API）
+      description: 获取用户的邮箱列表（兼容格式）
+      tags:
+        - Compatibility
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: 邮箱列表获取成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    emailId:
+                      type: string
+                    email:
+                      type: string
+                    token:
+                      type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT认证令牌
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API密钥认证（兼容API使用）
+
+  schemas:
+    # 通用响应格式
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 业务状态码
+          example: 200
+        msg:
+          type: string
+          description: 响应消息
+          example: 操作成功
+        data:
+          type: object
+          description: 响应数据
+          nullable: true
+
+    # 请求模型
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: 用户邮箱
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+          description: 用户密码
+          example: "SecurePassword123!"
+        username:
+          type: string
+          description: 用户名
+          example: "john_doe"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: 用户邮箱
+          example: "user@example.com"
+        password:
+          type: string
+          description: 用户密码
+          example: "SecurePassword123!"
+
+    RefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: 刷新令牌
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    CreateMailboxRequest:
+      type: object
+      properties:
+        prefix:
+          type: string
+          description: 自定义邮箱前缀（可选）
+          example: "mytemp"
+        domain:
+          type: string
+          description: 邮箱域名（可选）
+          example: "temp.mail"
+        expiresIn:
+          type: string
+          description: 过期时间（可选）
+          example: "24h"
+
+    CreateAliasRequest:
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          type: string
+          description: 别名地址
+          example: "alias@temp.mail"
+
+    # 响应模型
+    AuthResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+                tokens:
+                  $ref: '#/components/schemas/TokenPair'
+
+    TokenResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenPair'
+
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT访问令牌
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken:
+          type: string
+          description: JWT刷新令牌
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expiresIn:
+          type: integer
+          description: 访问令牌过期时间（秒）
+          example: 900
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          description: 用户邮箱
+          example: "user@example.com"
+        username:
+          type: string
+          description: 用户名
+          example: "john_doe"
+        tier:
+          type: string
+          description: 用户等级
+          example: "free"
+        role:
+          type: string
+          description: 用户角色
+          example: "user"
+        isActive:
+          type: boolean
+          description: 是否激活
+          example: true
+        isEmailVerified:
+          type: boolean
+          description: 邮箱是否验证
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2025-01-01T00:00:00Z"
+
+    UserInfo:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            quota:
+              type: object
+              properties:
+                maxMailboxes:
+                  type: integer
+                  description: 最大邮箱数量
+                  example: 10
+                usedMailboxes:
+                  type: integer
+                  description: 已使用邮箱数量
+                  example: 3
+
+    Mailbox:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 邮箱ID
+          example: "a1b2c3d4-e5f6-4789-a012-3456789abcde"
+        address:
+          type: string
+          description: 邮箱地址
+          example: "test@temp.mail"
+        localPart:
+          type: string
+          description: 本地部分
+          example: "test"
+        domain:
+          type: string
+          description: 域名
+          example: "temp.mail"
+        token:
+          type: string
+          description: 访问令牌
+          example: "AbCdEf123456"
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2025-01-01T00:00:00Z"
+        expiresAt:
+          type: string
+          format: date-time
+          description: 过期时间
+          example: "2025-01-02T00:00:00Z"
+        unread:
+          type: integer
+          description: 未读邮件数
+          example: 5
+        total:
+          type: integer
+          description: 总邮件数
+          example: 12
+
+    MailboxResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Mailbox'
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 邮件ID
+          example: "msg-123456"
+        mailboxId:
+          type: string
+          description: 邮箱ID
+          example: "a1b2c3d4-e5f6-4789-a012-3456789abcde"
+        from:
+          type: string
+          description: 发件人地址
+          example: "sender@example.com"
+        to:
+          type: string
+          description: 收件人地址
+          example: "test@temp.mail"
+        subject:
+          type: string
+          description: 邮件主题
+          example: "Test Email"
+        isRead:
+          type: boolean
+          description: 是否已读
+          example: false
+        receivedAt:
+          type: string
+          format: date-time
+          description: 接收时间
+          example: "2025-01-01T10:30:00Z"
+        hasAttachments:
+          type: boolean
+          description: 是否有附件
+          example: false
+
+    MessageDetail:
+      allOf:
+        - $ref: '#/components/schemas/Message'
+        - type: object
+          properties:
+        text:
+          type: string
+          description: 纯文本内容
+          example: "This is a test email."
+        html:
+          type: string
+          description: HTML内容
+          example: "<p>This is a test email.</p>"
+        attachments:
+          type: array
+          description: 附件列表
+          items:
+            $ref: '#/components/schemas/Attachment'
+
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 附件ID
+          example: "att-001"
+        filename:
+          type: string
+          description: 文件名
+          example: "document.pdf"
+        contentType:
+          type: string
+          description: 文件类型
+          example: "application/pdf"
+        size:
+          type: integer
+          description: 文件大小（字节）
+          example: 102400
+
+    Alias:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 别名ID
+          example: "alias-123456"
+        mailboxId:
+          type: string
+          description: 邮箱ID
+          example: "a1b2c3d4-e5f6-4789-a012-3456789abcde"
+        address:
+          type: string
+          description: 别名地址
+          example: "myalias@temp.mail"
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2025-01-01T12:00:00Z"
+        isActive:
+          type: boolean
+          description: 是否激活
+          example: true
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 用户ID
+          example: "user-123"
+        email:
+          type: string
+          description: 用户邮箱
+          example: "user@example.com"
+        username:
+          type: string
+          description: 用户名
+          example: "john_doe"
+        role:
+          type: string
+          description: 用户角色
+          example: "user"
+        tier:
+          type: string
+          description: 用户等级
+          example: "free"
+        isActive:
+          type: boolean
+          description: 是否激活
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2025-01-01T00:00:00Z"
+        mailboxCount:
+          type: integer
+          description: 邮箱数量
+          example: 3
+
+    SystemStatistics:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+          description: 总用户数
+          example: 1250
+        activeUsers:
+          type: integer
+          description: 活跃用户数
+          example: 980
+        totalMailboxes:
+          type: integer
+          description: 总邮箱数
+          example: 5600
+        totalMessages:
+          type: integer
+          description: 总邮件数
+          example: 45000
+        systemUptime:
+          type: string
+          description: 系统运行时间
+          example: "15d 8h 30m"
+        memoryUsage:
+          type: object
+          properties:
+            used:
+              type: integer
+              format: int64
+              description: 已使用内存（字节）
+              example: 512000000
+            total:
+              type: integer
+              format: int64
+              description: 总内存（字节）
+              example: 8589934592
+
+  # 错误响应
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 400
+              msg:
+                type: string
+                example: 请求参数错误
+              data:
+                type: object
+                nullable: true
+                example: null
+
+    Unauthorized:
+      description: 未认证或认证失败
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 401
+              msg:
+                type: string
+                example: 未认证
+              data:
+                type: object
+                nullable: true
+                example: null
+
+    Forbidden:
+      description: 权限不足
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 403
+              msg:
+                type: string
+                example: 权限不足
+              data:
+                type: object
+                nullable: true
+                example: null
+
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 404
+              msg:
+                type: string
+                example: 资源不存在
+              data:
+                type: object
+                nullable: true
+                example: null
+
+    Conflict:
+      description: 资源冲突
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 409
+              msg:
+                type: string
+                example: 资源已存在
+              data:
+                type: object
+                nullable: true
+                example: null
+
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 500
+              msg:
+                type: string
+                example: 服务器内部错误
+              data:
+                type: object
+                nullable: true
+                example: null
+
+tags:
+  - name: Health
+    description: 健康检查和系统状态
+  - name: Public
+    description: 公开的API（无需认证）
+  - name: Authentication
+    description: 用户认证相关API
+  - name: Mailbox
+    description: 邮箱管理API
+  - name: Messages
+    description: 邮件管理API
+  - name: Aliases
+    description: 别名管理API
+  - name: Admin
+    description: 管理员API
+  - name: WebSocket
+    description: WebSocket实时通知
+  - name: Compatibility
+    description: 兼容性API

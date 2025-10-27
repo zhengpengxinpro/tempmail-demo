@@ -1,0 +1,111 @@
+# 编译输出
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+server
+migrate
+api
+main
+
+# 测试输出
+*.test
+*.out
+coverage.out
+coverage.html
+coverage.txt
+coverage
+
+# 依赖目录
+vendor/
+
+# Go工作空间文件
+go.work
+
+# 环境配置
+.env
+.env.local
+.env.production
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+tmp/
+temp/
+.tmp/
+
+# 编辑器和IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 备份文件
+*.bak
+*.backup
+
+# 测试报告
+test-reports/
+*.xml
+*.json
+
+# 性能分析文件
+*.prof
+*.pprof
+
+# Air热重载
+build-errors.log
+
+# Docker
+.dockerignore
+
+# 证书文件
+*.pem
+*.key
+*.crt
+*.cert
+
+# 配置文件备份
+config.*.bak
+
+# 发布包
+release/*.zip
+release/*.tar.gz
+release/tempmail-linux/
+*.exe
+tempmail-linux-*
+
+# 临时文件
+*.go.tmp
+create_super_admin.go
+decode_jwt.go
+promote_admin.go
+set_admin.go
+temp_*.go
+-s
+
+# 测试覆盖率
+coverage-fs
+coverage-fs.out
+coverage-fs.html
+
+# 数据文件
+data/

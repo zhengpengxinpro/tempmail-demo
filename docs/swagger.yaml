@@ -1,0 +1,3271 @@
+definitions:
+  domain.ActivityLog:
+    properties:
+      action:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      ip:
+        type: string
+      target:
+        type: string
+      userEmail:
+        type: string
+      userId:
+        type: string
+    type: object
+  domain.Attachment:
+    properties:
+      contentType:
+        description: MIME类型
+        type: string
+      filename:
+        description: 文件名
+        type: string
+      id:
+        description: 附件唯一标识
+        type: string
+      messageId:
+        description: 所属邮件ID
+        type: string
+      size:
+        description: 大小（字节）
+        type: integer
+    type: object
+  domain.DomainMode:
+    enum:
+    - shared
+    - exclusive
+    - catch_all
+    type: string
+    x-enum-varnames:
+    - DomainModeShared
+    - DomainModeExclusive
+    - DomainModeCatchAll
+  domain.DomainStatus:
+    enum:
+    - pending
+    - verified
+    - failed
+    - expired
+    type: string
+    x-enum-varnames:
+    - DomainStatusPending
+    - DomainStatusVerified
+    - DomainStatusFailed
+    - DomainStatusExpired
+  domain.MailboxAlias:
+    properties:
+      address:
+        description: 别名地址
+        type: string
+      createdAt:
+        description: 创建时间
+        type: string
+      id:
+        description: 别名唯一标识
+        type: string
+      isActive:
+        description: 是否启用
+        type: boolean
+      mailboxId:
+        description: 关联的主邮箱ID
+        type: string
+    type: object
+  domain.MailboxConfig:
+    properties:
+      allowedDomains:
+        description: 允许的域名列表
+        items:
+          type: string
+        type: array
+      defaultTtl:
+        description: 默认过期时间，如 "24h"
+        type: string
+      maxAliases:
+        description: 每个邮箱最大别名数
+        type: integer
+      maxPerIp:
+        description: 单IP最大邮箱数
+        type: integer
+      requireVerification:
+        description: 是否需要邮箱验证
+        type: boolean
+    type: object
+  domain.Message:
+    properties:
+      attachments:
+        description: 邮件附件列表
+        items:
+          $ref: '#/definitions/domain.Attachment'
+        type: array
+      createdAt:
+        type: string
+      from:
+        type: string
+      html:
+        type: string
+      id:
+        type: string
+      isRead:
+        type: boolean
+      mailboxId:
+        type: string
+      raw:
+        type: string
+      receivedAt:
+        type: string
+      subject:
+        type: string
+      text:
+        type: string
+      to:
+        type: string
+    type: object
+  domain.MessageSearchResult:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/domain.Message'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+  domain.Quota:
+    properties:
+      maxApiRequestsPerMinute:
+        type: integer
+      maxConcurrentRequests:
+        type: integer
+      maxMailboxes:
+        type: integer
+      maxMessagesPerMailbox:
+        type: integer
+      userId:
+        type: string
+    type: object
+  domain.RateLimitConfig:
+    properties:
+      burstSize:
+        description: 突发请求数
+        type: integer
+      createMailboxLimit:
+        description: 创建邮箱限流（每小时）
+        type: integer
+      enabled:
+        description: 是否启用限流
+        type: boolean
+      requestsPerMinute:
+        description: 每分钟请求数
+        type: integer
+    type: object
+  domain.SMTPConfig:
+    properties:
+      bindAddr:
+        description: 监听地址，如 ":25"
+        type: string
+      domain:
+        description: SMTP服务器域名
+        type: string
+      maxSize:
+        description: 最大邮件大小（字节），默认10MB
+        type: integer
+      readTimeout:
+        description: 读取超时（秒），默认60
+        type: integer
+    type: object
+  domain.SecurityConfig:
+    properties:
+      enableCaptcha:
+        description: 是否启用验证码
+        type: boolean
+      jwtAccessExpiry:
+        description: JWT访问令牌有效期，如 "15m"
+        type: string
+      jwtRefreshExpiry:
+        description: JWT刷新令牌有效期，如 "7d"
+        type: string
+      maxLoginAttempts:
+        description: 最大登录尝试次数
+        type: integer
+      passwordMinLength:
+        description: 最小密码长度
+        type: integer
+    type: object
+  domain.SystemConfig:
+    properties:
+      id:
+        type: string
+      mailbox:
+        $ref: '#/definitions/domain.MailboxConfig'
+      rateLimit:
+        $ref: '#/definitions/domain.RateLimitConfig'
+      security:
+        $ref: '#/definitions/domain.SecurityConfig'
+      smtp:
+        $ref: '#/definitions/domain.SMTPConfig'
+      updatedAt:
+        type: string
+      updatedBy:
+        description: 更新者用户ID
+        type: string
+    type: object
+  domain.SystemDomain:
+    properties:
+      createdAt:
+        type: string
+      createdBy:
+        type: string
+      domain:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      isDefault:
+        type: boolean
+      lastCheckAt:
+        type: string
+      mailboxCount:
+        type: integer
+      mxRecords:
+        items:
+          type: string
+        type: array
+      notes:
+        type: string
+      status:
+        $ref: '#/definitions/domain.SystemDomainStatus'
+      verifiedAt:
+        type: string
+      verifyMethod:
+        type: string
+      verifyToken:
+        type: string
+    type: object
+  domain.SystemDomainStatus:
+    enum:
+    - pending
+    - verified
+    - failed
+    type: string
+    x-enum-varnames:
+    - SystemDomainStatusPending
+    - SystemDomainStatusVerified
+    - SystemDomainStatusFailed
+  domain.SystemStatistics:
+    properties:
+      activeMailboxes:
+        type: integer
+      activeUsers:
+        type: integer
+      mailboxesByDomain:
+        additionalProperties:
+          type: integer
+        type: object
+      messagesToday:
+        type: integer
+      recentActivity:
+        items:
+          $ref: '#/definitions/domain.ActivityLog'
+        type: array
+      totalMailboxes:
+        type: integer
+      totalMessages:
+        type: integer
+      totalUsers:
+        type: integer
+      usersByRole:
+        additionalProperties:
+          type: integer
+        type: object
+      usersByTier:
+        additionalProperties:
+          type: integer
+        type: object
+    type: object
+  domain.Tag:
+    properties:
+      color:
+        description: 标签颜色（十六进制）
+        type: string
+      createdAt:
+        type: string
+      description:
+        description: 标签描述
+        type: string
+      id:
+        type: string
+      name:
+        description: 标签名称
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: 所属用户
+        type: string
+    type: object
+  domain.TagWithCount:
+    properties:
+      color:
+        description: 标签颜色（十六进制）
+        type: string
+      createdAt:
+        type: string
+      description:
+        description: 标签描述
+        type: string
+      id:
+        type: string
+      messageCount:
+        description: 该标签下的邮件数量
+        type: integer
+      name:
+        description: 标签名称
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: 所属用户
+        type: string
+    type: object
+  domain.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      isEmailVerified:
+        type: boolean
+      lastLoginAt:
+        type: string
+      role:
+        $ref: '#/definitions/domain.UserRole'
+      tier:
+        $ref: '#/definitions/domain.UserTier'
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  domain.UserDomain:
+    properties:
+      createdAt:
+        type: string
+      domain:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      lastCheckAt:
+        type: string
+      mailboxCount:
+        type: integer
+      mode:
+        $ref: '#/definitions/domain.DomainMode'
+      monthlyFee:
+        type: number
+      mxRecords:
+        items:
+          type: string
+        type: array
+      notes:
+        type: string
+      status:
+        $ref: '#/definitions/domain.DomainStatus'
+      updatedAt:
+        type: string
+      userId:
+        type: string
+      verifiedAt:
+        type: string
+      verifyMethod:
+        type: string
+      verifyToken:
+        type: string
+    type: object
+  domain.UserRole:
+    enum:
+    - user
+    - admin
+    - super
+    type: string
+    x-enum-comments:
+      RoleSuper: 超级管理员
+    x-enum-descriptions:
+    - ""
+    - ""
+    - 超级管理员
+    x-enum-varnames:
+    - RoleUser
+    - RoleAdmin
+    - RoleSuper
+  domain.UserTier:
+    enum:
+    - free
+    - basic
+    - pro
+    - enterprise
+    type: string
+    x-enum-varnames:
+    - TierFree
+    - TierBasic
+    - TierPro
+    - TierEnterprise
+  domain.Webhook:
+    properties:
+      createdAt:
+        type: string
+      events:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      isActive:
+        type: boolean
+      lastError:
+        type: string
+      lastSuccess:
+        type: string
+      retryCount:
+        type: integer
+      secret:
+        type: string
+      updatedAt:
+        type: string
+      url:
+        type: string
+      userId:
+        type: string
+    type: object
+  domain.WebhookDelivery:
+    properties:
+      attempts:
+        description: 尝试次数
+        type: integer
+      createdAt:
+        type: string
+      duration:
+        description: 请求耗时（毫秒）
+        type: integer
+      error:
+        description: 错误信息
+        type: string
+      event:
+        $ref: '#/definitions/domain.WebhookEventType'
+      id:
+        type: string
+      nextRetry:
+        description: 下次重试时间
+        type: string
+      payload:
+        description: JSON payload
+        type: string
+      response:
+        description: 响应内容
+        type: string
+      statusCode:
+        description: HTTP 状态码
+        type: integer
+      success:
+        description: 是否成功
+        type: boolean
+      webhookId:
+        type: string
+    type: object
+  domain.WebhookEventType:
+    enum:
+    - mail.received
+    - mail.read
+    - mailbox.created
+    - mailbox.deleted
+    - tag.created
+    - tag.updated
+    - tag.deleted
+    - message.tagged
+    type: string
+    x-enum-comments:
+      WebhookEventMailRead: 邮件已读
+      WebhookEventMailReceived: 新邮件到达
+      WebhookEventMailboxCreated: 邮箱创建
+      WebhookEventMailboxDeleted: 邮箱删除
+      WebhookEventMessageTagged: 邮件添加标签
+      WebhookEventTagCreated: 标签创建
+      WebhookEventTagDeleted: 标签删除
+      WebhookEventTagUpdated: 标签更新
+    x-enum-descriptions:
+    - 新邮件到达
+    - 邮件已读
+    - 邮箱创建
+    - 邮箱删除
+    - 标签创建
+    - 标签更新
+    - 标签删除
+    - 邮件添加标签
+    x-enum-varnames:
+    - WebhookEventMailReceived
+    - WebhookEventMailRead
+    - WebhookEventMailboxCreated
+    - WebhookEventMailboxDeleted
+    - WebhookEventTagCreated
+    - WebhookEventTagUpdated
+    - WebhookEventTagDeleted
+    - WebhookEventMessageTagged
+  httptransport.AddSystemDomainRequest:
+    properties:
+      domain:
+        type: string
+      notes:
+        type: string
+    required:
+    - domain
+    type: object
+  httptransport.AddUserDomainRequest:
+    properties:
+      domain:
+        type: string
+      mode:
+        enum:
+        - shared
+        - exclusive
+        - catch_all
+        - whitelist
+        type: string
+    required:
+    - domain
+    - mode
+    type: object
+  httptransport.RecoverSystemDomainRequest:
+    properties:
+      domain:
+        type: string
+    required:
+    - domain
+    type: object
+  httptransport.Response:
+    properties:
+      code:
+        description: 业务状态码
+        type: integer
+      data:
+        description: 数据载荷
+      msg:
+        description: 中文提示信息
+        type: string
+    type: object
+  httptransport.ToggleSystemDomainStatusRequest:
+    properties:
+      isActive:
+        type: boolean
+    type: object
+  httptransport.UpdateDomainModeRequest:
+    properties:
+      mode:
+        enum:
+        - shared
+        - exclusive
+        - catch_all
+        - whitelist
+        type: string
+    required:
+    - mode
+    type: object
+  httptransport.UpdateSystemConfigRequest:
+    properties:
+      mailbox:
+        $ref: '#/definitions/domain.MailboxConfig'
+      rateLimit:
+        $ref: '#/definitions/domain.RateLimitConfig'
+      security:
+        $ref: '#/definitions/domain.SecurityConfig'
+      smtp:
+        $ref: '#/definitions/domain.SMTPConfig'
+    type: object
+  httptransport.UpdateUserQuotaRequest:
+    properties:
+      maxApiRequestsPerMinute:
+        type: integer
+      maxConcurrentRequests:
+        type: integer
+      maxMailboxes:
+        type: integer
+      maxMessagesPerMailbox:
+        type: integer
+    type: object
+  httptransport.UpdateUserRequest:
+    properties:
+      isActive:
+        type: boolean
+      isEmailVerified:
+        type: boolean
+      role:
+        $ref: '#/definitions/domain.UserRole'
+      tier:
+        $ref: '#/definitions/domain.UserTier'
+    type: object
+  httptransport.apiKeyResponse:
+    properties:
+      createdAt:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      key:
+        type: string
+      lastUsedAt:
+        type: string
+      name:
+        type: string
+    type: object
+  httptransport.attachmentInfo:
+    properties:
+      contentType:
+        type: string
+      filename:
+        type: string
+      id:
+        type: string
+      size:
+        type: integer
+    type: object
+  httptransport.attachmentItem:
+    properties:
+      attachmentId:
+        type: string
+      contentType:
+        type: string
+      filename:
+        type: string
+      size:
+        type: integer
+    type: object
+  httptransport.authResponse:
+    properties:
+      accessToken:
+        type: string
+      expiresIn:
+        type: integer
+      refreshToken:
+        type: string
+      user:
+        $ref: '#/definitions/httptransport.userResponse'
+    type: object
+  httptransport.compatMessageListResponse:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/httptransport.messageItem'
+        type: array
+      nextCursor:
+        description: 下一页游标
+        type: string
+    type: object
+  httptransport.configResponse:
+    properties:
+      domains:
+        description: 可用的邮箱域名列表
+        items:
+          type: string
+        type: array
+    type: object
+  httptransport.createAPIKeyRequest:
+    properties:
+      expiresIn:
+        description: 过期时间（如 "720h" 表示30天）
+        type: string
+      name:
+        description: API Key名称/描述
+        type: string
+    required:
+    - name
+    type: object
+  httptransport.createMailboxRequest:
+    properties:
+      domain:
+        type: string
+      expiresIn:
+        type: string
+      prefix:
+        type: string
+    type: object
+  httptransport.createMessageRequest:
+    properties:
+      from:
+        type: string
+      html:
+        type: string
+      isRead:
+        type: boolean
+      raw:
+        type: string
+      subject:
+        type: string
+      text:
+        type: string
+      to:
+        type: string
+    type: object
+  httptransport.emailItem:
+    properties:
+      createdAt:
+        type: string
+      domain:
+        type: string
+      email:
+        type: string
+      emailId:
+        type: string
+      expiresAt:
+        type: string
+      name:
+        type: string
+    type: object
+  httptransport.emailListResponse:
+    properties:
+      emails:
+        items:
+          $ref: '#/definitions/httptransport.emailItem'
+        type: array
+      nextCursor:
+        description: 下一页游标
+        type: string
+    type: object
+  httptransport.errorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  httptransport.generateEmailRequest:
+    properties:
+      domain:
+        description: 邮箱域名
+        type: string
+      expiryTime:
+        description: 过期时间（毫秒）：3600000(1h), 86400000(1d), 604800000(7d), 0(永久)
+        type: integer
+      name:
+        description: 邮箱前缀
+        type: string
+    type: object
+  httptransport.generateEmailResponse:
+    properties:
+      createdAt:
+        description: 创建时间
+        type: string
+      domain:
+        description: 域名
+        type: string
+      email:
+        description: 完整邮箱地址
+        type: string
+      emailId:
+        description: 邮箱ID
+        type: string
+      expiresAt:
+        description: 过期时间
+        type: string
+      name:
+        description: 邮箱前缀
+        type: string
+      token:
+        description: 访问令牌
+        type: string
+    type: object
+  httptransport.loginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  httptransport.mailboxListResponse:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/httptransport.mailboxResponse'
+        type: array
+    type: object
+  httptransport.mailboxResponse:
+    properties:
+      address:
+        type: string
+      createdAt:
+        type: string
+      domain:
+        type: string
+      expiresAt:
+        type: string
+      id:
+        type: string
+      localPart:
+        type: string
+      token:
+        type: string
+      total:
+        type: integer
+      unread:
+        type: integer
+    type: object
+  httptransport.messageDetailResponse:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/httptransport.attachmentItem'
+        type: array
+      createdAt:
+        type: string
+      emailId:
+        type: string
+      from:
+        type: string
+      html:
+        type: string
+      isRead:
+        type: boolean
+      messageId:
+        type: string
+      subject:
+        type: string
+      text:
+        type: string
+      to:
+        type: string
+    type: object
+  httptransport.messageItem:
+    properties:
+      createdAt:
+        type: string
+      from:
+        type: string
+      hasAttachment:
+        type: boolean
+      isRead:
+        type: boolean
+      messageId:
+        type: string
+      subject:
+        type: string
+    type: object
+  httptransport.messageListResponse:
+    properties:
+      count:
+        type: integer
+      items:
+        items:
+          $ref: '#/definitions/httptransport.messageResponse'
+        type: array
+    type: object
+  httptransport.messageResponse:
+    properties:
+      attachments:
+        description: 附件列表（不包含内容）
+        items:
+          $ref: '#/definitions/httptransport.attachmentInfo'
+        type: array
+      createdAt:
+        type: string
+      from:
+        type: string
+      html:
+        type: string
+      id:
+        type: string
+      isRead:
+        type: boolean
+      mailboxId:
+        type: string
+      receivedAt:
+        type: string
+      subject:
+        type: string
+      text:
+        type: string
+      to:
+        type: string
+    type: object
+  httptransport.refreshRequest:
+    properties:
+      refreshToken:
+        type: string
+    required:
+    - refreshToken
+    type: object
+  httptransport.registerRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  httptransport.userResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      isEmailVerified:
+        type: boolean
+      tier:
+        type: string
+      username:
+        type: string
+    type: object
+  service.CreateTagInput:
+    properties:
+      color:
+        type: string
+      description:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 20
+        minLength: 1
+        type: string
+    required:
+    - color
+    - name
+    type: object
+  service.CreateWebhookInput:
+    properties:
+      description:
+        maxLength: 200
+        type: string
+      events:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      url:
+        type: string
+    required:
+    - events
+    - url
+    type: object
+  service.ListUsersOutput:
+    properties:
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+      totalPages:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/domain.User'
+        type: array
+    type: object
+  service.UpdateTagInput:
+    properties:
+      color:
+        type: string
+      description:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 20
+        minLength: 1
+        type: string
+    type: object
+  service.UpdateWebhookInput:
+    properties:
+      description:
+        maxLength: 200
+        type: string
+      events:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      isActive:
+        type: boolean
+      url:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/config:
+    get:
+      description: 获取系统配置，包括可用的邮箱域名列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.configResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取系统配置
+      tags:
+      - Compat
+  /api/emails:
+    get:
+      description: 获取用户的邮箱列表，支持分页
+      parameters:
+      - description: 分页游标
+        in: query
+        name: cursor
+        type: string
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.emailListResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取邮箱列表
+      tags:
+      - Compat
+  /api/emails/{emailId}:
+    get:
+      description: 获取指定邮箱的邮件列表，支持分页
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: emailId
+        required: true
+        type: string
+      - description: 分页游标
+        in: query
+        name: cursor
+        type: string
+      - default: 20
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.compatMessageListResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取邮件列表
+      tags:
+      - Compat
+  /api/emails/{emailId}/{messageId}:
+    get:
+      description: 获取邮件的详细内容
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: emailId
+        required: true
+        type: string
+      - description: 邮件ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.messageDetailResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 获取单封邮件
+      tags:
+      - Compat
+  /api/emails/generate:
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的临时邮箱
+      parameters:
+      - description: 邮箱参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.generateEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.generateEmailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: 生成临时邮箱
+      tags:
+      - Compat
+  /v1/admin/config:
+    get:
+      description: 获取当前系统配置（需要管理员权限）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.SystemConfig'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取系统配置
+      tags:
+      - Admin - Config
+    put:
+      consumes:
+      - application/json
+      description: 更新系统配置（需要超级管理员权限）
+      parameters:
+      - description: 配置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.UpdateSystemConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.SystemConfig'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 更新系统配置
+      tags:
+      - Admin - Config
+  /v1/admin/config/reset:
+    post:
+      description: 将系统配置重置为默认值（需要超级管理员权限）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.SystemConfig'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 重置系统配置
+      tags:
+      - Admin - Config
+  /v1/admin/domains:
+    get:
+      description: 获取所有系统域名（需要管理员权限）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.SystemDomain'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取系统域名列表
+      tags:
+      - Admin - System Domains
+    post:
+      consumes:
+      - application/json
+      description: 添加新的系统域名，生成 DNS 验证令牌（需要超级管理员权限）
+      parameters:
+      - description: 域名信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.AddSystemDomainRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.SystemDomain'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 添加系统域名
+      tags:
+      - Admin - System Domains
+  /v1/admin/domains/{id}:
+    delete:
+      description: 删除系统域名（需要超级管理员权限）
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 删除系统域名
+      tags:
+      - Admin - System Domains
+    get:
+      description: 获取指定系统域名的详细信息（需要管理员权限）
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SystemDomain'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取系统域名详情
+      tags:
+      - Admin - System Domains
+  /v1/admin/domains/{id}/instructions:
+    get:
+      description: 获取域名的 DNS 配置说明（MX 记录、TXT 记录）
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取系统域名配置说明
+      tags:
+      - Admin - System Domains
+  /v1/admin/domains/{id}/set-default:
+    post:
+      description: 将指定域名设为默认域名（需要超级管理员权限）
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 设置默认系统域名
+      tags:
+      - Admin - System Domains
+  /v1/admin/domains/{id}/toggle:
+    patch:
+      consumes:
+      - application/json
+      description: 启用或禁用系统域名（需要管理员权限）
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 状态信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.ToggleSystemDomainStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SystemDomain'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 切换系统域名状态
+      tags:
+      - Admin - System Domains
+  /v1/admin/domains/{id}/verify:
+    post:
+      description: 通过 DNS TXT 记录验证域名所有权（需要管理员权限）
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SystemDomain'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 验证系统域名
+      tags:
+      - Admin - System Domains
+  /v1/admin/domains/recover:
+    post:
+      consumes:
+      - application/json
+      description: 通过 DNS 验证找回已删除或验证失败的域名（需要超级管理员权限）
+      parameters:
+      - description: 域名信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.RecoverSystemDomainRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SystemDomain'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 找回系统域名
+      tags:
+      - Admin - System Domains
+  /v1/admin/statistics:
+    get:
+      description: 获取系统使用统计信息（需要管理员权限）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.SystemStatistics'
+      summary: 获取系统统计
+      tags:
+      - Admin
+  /v1/admin/users:
+    get:
+      consumes:
+      - application/json
+      description: 获取系统中的用户列表（需要管理员权限）
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量
+        in: query
+        name: pageSize
+        type: integer
+      - description: 搜索关键词（邮箱/用户名）
+        in: query
+        name: search
+        type: string
+      - description: 角色过滤（user/admin/super）
+        in: query
+        name: role
+        type: string
+      - description: 等级过滤（free/basic/pro/enterprise）
+        in: query
+        name: tier
+        type: string
+      - description: 激活状态过滤
+        in: query
+        name: isActive
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListUsersOutput'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取用户列表
+      tags:
+      - Admin
+  /v1/admin/users/{id}:
+    delete:
+      description: 删除用户及其所有数据（需要超级管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 删除用户
+      tags:
+      - Admin
+    get:
+      description: 获取指定用户的详细信息（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取用户详情
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: 更新用户的角色、等级或状态（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 更新用户信息
+      tags:
+      - Admin
+  /v1/admin/users/{id}/quota:
+    get:
+      description: 获取用户的配额信息（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Quota'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取用户配额
+      tags:
+      - Admin
+    put:
+      consumes:
+      - application/json
+      description: 自定义用户配额限制（需要管理员权限）
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 配额信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.UpdateUserQuotaRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 更新用户配额
+      tags:
+      - Admin
+  /v1/api-keys:
+    get:
+      description: 获取当前用户的所有API Key
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              count:
+                type: integer
+              items:
+                items:
+                  $ref: '#/definitions/httptransport.apiKeyResponse'
+                type: array
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取API Key列表
+      tags:
+      - APIKeys
+    post:
+      consumes:
+      - application/json
+      description: 为当前用户创建一个新的API Key用于第三方对接
+      parameters:
+      - description: API Key参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.createAPIKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httptransport.apiKeyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建API Key
+      tags:
+      - APIKeys
+  /v1/api-keys/{id}:
+    delete:
+      description: 删除指定的API Key
+      parameters:
+      - description: API Key ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除API Key
+      tags:
+      - APIKeys
+    get:
+      description: 获取指定API Key的详细信息
+      parameters:
+      - description: API Key ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.apiKeyResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取API Key详情
+      tags:
+      - APIKeys
+  /v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用邮箱和密码进行身份验证，成功后返回认证令牌
+      parameters:
+      - description: 登录凭证
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登录成功
+          schema:
+            $ref: '#/definitions/httptransport.authResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "401":
+          description: 邮箱或密码错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: 账户已被禁用
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 用户登录
+      tags:
+      - 认证
+  /v1/auth/me:
+    get:
+      description: 获取已认证用户的详细信息，需要有效的访问令牌
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 用户信息
+          schema:
+            $ref: '#/definitions/httptransport.userResponse'
+        "401":
+          description: 未认证或令牌无效
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: 用户不存在
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取当前用户信息
+      tags:
+      - 认证
+  /v1/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: 使用刷新令牌获取新的访问令牌，避免重新登录
+      parameters:
+      - description: 包含刷新令牌的请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.refreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 新的访问令牌
+          schema:
+            properties:
+              accessToken:
+                type: string
+              expiresIn:
+                type: integer
+            type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "401":
+          description: 刷新令牌无效或已过期
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 刷新访问令牌
+      tags:
+      - 认证
+  /v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 创建新用户账户，返回用户信息和认证令牌
+      parameters:
+      - description: 注册信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 注册成功
+          schema:
+            $ref: '#/definitions/httptransport.authResponse'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "409":
+          description: 邮箱已存在
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 用户注册
+      tags:
+      - 认证
+  /v1/mailboxes:
+    get:
+      description: 返回当前用户的临时邮箱列表（认证用户）或所有邮箱（游客）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.mailboxListResponse'
+      summary: 获取邮箱列表
+      tags:
+      - Mailboxes
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的临时邮箱地址
+      parameters:
+      - description: 邮箱参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.createMailboxRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httptransport.mailboxResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 创建临时邮箱
+      tags:
+      - Mailboxes
+  /v1/mailboxes/{id}:
+    delete:
+      description: 删除指定 ID 的邮箱及其邮件
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 删除临时邮箱
+      tags:
+      - Mailboxes
+    get:
+      description: 根据邮箱 ID 查看详细信息
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.mailboxResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取邮箱详情
+      tags:
+      - Mailboxes
+  /v1/mailboxes/{id}/aliases:
+    get:
+      description: 获取邮箱的所有别名列表
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              count:
+                type: integer
+              items:
+                items:
+                  $ref: '#/definitions/domain.MailboxAlias'
+                type: array
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 列出邮箱别名
+      tags:
+      - Aliases
+    post:
+      consumes:
+      - application/json
+      description: 为邮箱创建一个新的别名地址
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 别名信息
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.MailboxAlias'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 创建邮箱别名
+      tags:
+      - Aliases
+  /v1/mailboxes/{id}/aliases/{aliasId}:
+    delete:
+      description: 删除指定的邮箱别名
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 别名ID
+        in: path
+        name: aliasId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 删除别名
+      tags:
+      - Aliases
+    get:
+      description: 获取指定别名的详细信息
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 别名ID
+        in: path
+        name: aliasId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MailboxAlias'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取别名详情
+      tags:
+      - Aliases
+    patch:
+      consumes:
+      - application/json
+      description: 启用或禁用邮箱别名
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 别名ID
+        in: path
+        name: aliasId
+        required: true
+        type: string
+      - description: 状态信息
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.MailboxAlias'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 切换别名状态
+      tags:
+      - Aliases
+  /v1/mailboxes/{id}/messages:
+    get:
+      description: 返回邮箱内的全部邮件
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.messageListResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取邮件列表
+      tags:
+      - Messages
+    post:
+      consumes:
+      - application/json
+      description: 在指定邮箱下新增一封邮件
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 邮件内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.createMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httptransport.messageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 写入邮件
+      tags:
+      - Messages
+  /v1/mailboxes/{id}/messages/{messageId}:
+    get:
+      description: 查看单封邮件内容
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 邮件ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.messageResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取邮件详情
+      tags:
+      - Messages
+  /v1/mailboxes/{id}/messages/{messageId}/attachments/{attachmentId}:
+    get:
+      description: 下载邮件的附件文件
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 邮件ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      - description: 附件ID
+        in: path
+        name: attachmentId
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 下载附件
+      tags:
+      - Messages
+  /v1/mailboxes/{id}/messages/{messageId}/read:
+    post:
+      description: 将指定邮件更新为已读状态
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 邮件ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 标记邮件已读
+      tags:
+      - Messages
+  /v1/mailboxes/{id}/messages/search:
+    get:
+      consumes:
+      - application/json
+      description: 在指定邮箱中搜索邮件
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 搜索关键词（搜索主题、发件人、内容）
+        in: query
+        name: q
+        type: string
+      - description: 发件人筛选
+        in: query
+        name: from
+        type: string
+      - description: 主题筛选
+        in: query
+        name: subject
+        type: string
+      - description: 开始日期 (RFC3339格式)
+        in: query
+        name: startDate
+        type: string
+      - description: 结束日期 (RFC3339格式)
+        in: query
+        name: endDate
+        type: string
+      - description: 是否已读
+        in: query
+        name: isRead
+        type: boolean
+      - description: 是否有附件
+        in: query
+        name: hasAttachment
+        type: boolean
+      - description: 页码（默认1）
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量（默认20，最大100）
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.MessageSearchResult'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 搜索邮件
+      tags:
+      - Messages
+  /v1/mailboxes/{mailboxId}/messages/{messageId}/tags:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定邮件的所有标签
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: mailboxId
+        required: true
+        type: string
+      - description: 邮件ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Tag'
+                  type: array
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取邮件标签
+      tags:
+      - Tags
+    post:
+      consumes:
+      - application/json
+      description: 为指定邮件添加标签
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: mailboxId
+        required: true
+        type: string
+      - description: 邮件ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      - description: 标签ID
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 为邮件添加标签
+      tags:
+      - Tags
+  /v1/mailboxes/{mailboxId}/messages/{messageId}/tags/{tagId}:
+    delete:
+      consumes:
+      - application/json
+      description: 从邮件中移除指定标签
+      parameters:
+      - description: 邮箱ID
+        in: path
+        name: mailboxId
+        required: true
+        type: string
+      - description: 邮件ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      - description: 标签ID
+        in: path
+        name: tagId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 移除邮件标签
+      tags:
+      - Tags
+  /v1/public/config:
+    get:
+      description: 获取前端需要的公开系统配置（公开接口，无需认证）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  properties:
+                    defaultDomain:
+                      type: string
+                    domains:
+                      items:
+                        type: string
+                      type: array
+                    features:
+                      type: object
+                  type: object
+              type: object
+      summary: 获取系统配置
+      tags:
+      - Public
+  /v1/public/domains:
+    get:
+      description: 获取所有可用的系统域名列表（公开接口，无需认证）
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  properties:
+                    count:
+                      type: integer
+                    domains:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+              type: object
+      summary: 获取可用域名列表
+      tags:
+      - Public
+  /v1/tags:
+    get:
+      consumes:
+      - application/json
+      description: 列出当前用户的所有标签
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.TagWithCount'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 列出标签
+      tags:
+      - Tags
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的邮件标签
+      parameters:
+      - description: 标签信息
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateTagInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Tag'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建标签
+      tags:
+      - Tags
+  /v1/tags/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的标签
+      parameters:
+      - description: 标签ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除标签
+      tags:
+      - Tags
+    get:
+      consumes:
+      - application/json
+      description: 获取指定标签的详细信息
+      parameters:
+      - description: 标签ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Tag'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取标签
+      tags:
+      - Tags
+    patch:
+      consumes:
+      - application/json
+      description: 更新标签信息
+      parameters:
+      - description: 标签ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新信息
+        in: body
+        name: tag
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateTagInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Tag'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新标签
+      tags:
+      - Tags
+  /v1/tags/{id}/messages:
+    get:
+      consumes:
+      - application/json
+      description: 列出指定标签下的所有邮件
+      parameters:
+      - description: 标签ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Message'
+                  type: array
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      security:
+      - BearerAuth: []
+      summary: 按标签列出邮件
+      tags:
+      - Tags
+  /v1/user/domains:
+    get:
+      description: 获取当前用户添加的所有域名
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.UserDomain'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取用户的域名列表
+      tags:
+      - User Domains
+    post:
+      consumes:
+      - application/json
+      description: 用户添加自己的域名，可选择共享或独享模式
+      parameters:
+      - description: 域名信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.AddUserDomainRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.UserDomain'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 添加用户自定义域名
+      tags:
+      - User Domains
+  /v1/user/domains/{id}:
+    delete:
+      description: 删除用户自定义域名
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 删除域名
+      tags:
+      - User Domains
+    get:
+      description: 获取指定域名的详细信息
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UserDomain'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取域名详情
+      tags:
+      - User Domains
+    patch:
+      consumes:
+      - application/json
+      description: 更新域名的共享/独享模式
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 模式信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/httptransport.UpdateDomainModeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UserDomain'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 更新域名模式
+      tags:
+      - User Domains
+  /v1/user/domains/{id}/instructions:
+    get:
+      description: 获取域名的 DNS 配置说明（MX 记录、TXT 记录）
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 获取域名配置说明
+      tags:
+      - User Domains
+  /v1/user/domains/{id}/verify:
+    post:
+      description: 通过 DNS TXT 记录验证域名所有权
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.UserDomain'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+      summary: 验证域名所有权
+      tags:
+      - User Domains
+  /v1/webhooks:
+    get:
+      consumes:
+      - application/json
+      description: 列出当前用户的所有 Webhooks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Webhook'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: 列出 Webhooks
+      tags:
+      - Webhooks
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的 Webhook 配置
+      parameters:
+      - description: Webhook 信息
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateWebhookInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Webhook'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: 创建 Webhook
+      tags:
+      - Webhooks
+  /v1/webhooks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的 Webhook
+      parameters:
+      - description: Webhook ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httptransport.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: 删除 Webhook
+      tags:
+      - Webhooks
+    get:
+      consumes:
+      - application/json
+      description: 获取指定 Webhook 的详细信息
+      parameters:
+      - description: Webhook ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Webhook'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取 Webhook
+      tags:
+      - Webhooks
+    patch:
+      consumes:
+      - application/json
+      description: 更新 Webhook 配置
+      parameters:
+      - description: Webhook ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新信息
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateWebhookInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Webhook'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: 更新 Webhook
+      tags:
+      - Webhooks
+  /v1/webhooks/{id}/deliveries:
+    get:
+      consumes:
+      - application/json
+      description: 获取 Webhook 的投递记录
+      parameters:
+      - description: Webhook ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 记录数量（默认20，最大100）
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/httptransport.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.WebhookDelivery'
+                  type: array
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httptransport.errorResponse'
+      security:
+      - BearerAuth: []
+      summary: 获取投递记录
+      tags:
+      - Webhooks
+swagger: "2.0"
